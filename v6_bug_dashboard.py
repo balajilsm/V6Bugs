@@ -227,6 +227,7 @@ with tab_dashboard:
                     .head(top_n)
                     .rename_axis("Assignee")
                     .reset_index(name="Count")
+                    .sort_values("Count", ascending=False)
                 )
                 if not assignee_counts.empty:
                     st.bar_chart(assignee_counts.set_index("Assignee"))
