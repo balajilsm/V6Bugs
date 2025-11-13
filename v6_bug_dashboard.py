@@ -229,6 +229,7 @@ with tab_dashboard:
                     .reset_index(name="Count")
                     .sort_values("Count", ascending=False)
                 )
+                st.bar_chart(assignee_counts.set_index("Assignee"))
                 if not assignee_counts.empty:
                     st.bar_chart(assignee_counts.set_index("Assignee"))
                 else:
