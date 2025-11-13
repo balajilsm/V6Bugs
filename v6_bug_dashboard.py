@@ -10,6 +10,7 @@ st.set_page_config(
 
 st.title("🐞 SplashBI V6 – Bug Portfolio Dashboard")
 st.caption("Director view of Jira bug backlog – filter, explore, and monitor stability.")
+st.caption("1️⃣ First 7 Days – Stabilize & Get Clarity")
 
 st.sidebar.header("1️⃣ Upload Jira Export")
 uploaded_file = st.sidebar.file_uploader(
