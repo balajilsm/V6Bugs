@@ -1,0 +1,2 @@
+plotly
+streamlit-plotly-events
