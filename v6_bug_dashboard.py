@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
+from streamlit_plotly_events import plotly_events
 
 st.set_page_config(
     page_title="V6 Bug Rescue Dashboard",
@@ -110,22 +112,110 @@ def main():
 
     st.markdown("---")
 
-    # --- Charts Row: By Priority & Status ---
+    # --- Charts Row: By Priority & Status with DRILLDOWN ---
     chart_col1, chart_col2 = st.columns(2)
 
-    if "Priority" in filtered_df.columns:
-        with chart_col1:
-            st.markdown("#### Bugs by Priority")
+    # 🔹 Bugs by Priority with drilldown
+    with chart_col1:
+        if "Priority" in filtered_df.columns:
+            st.markdown("#### Bugs by Priority (click a bar for details)")
             pri_counts = filtered_df["Priority"].value_counts().reset_index()
             pri_counts.columns = ["Priority", "Count"]
-            st.bar_chart(pri_counts.set_index("Priority"))
 
-    if "Status" in filtered_df.columns:
-        with chart_col2:
-            st.markdown("#### Bugs by Status")
+            fig_pri = px.bar(
+                pri_counts,
+                x="Priority",
+                y="Count",
+            )
+
+            selected_pri_points = plotly_events(
+                fig_pri,
+                click_event=True,
+                hover_event=False,
+                select_event=False,
+                key="priority_bar",
+            )
+
+            # If a bar is clicked, show detail table
+            if selected_pri_points:
+                clicked_priority = selected_pri_points[0]["x"]
+                st.markdown(f"**🔍 Drilldown – Bugs with Priority: `{clicked_priority}`**")
+                pri_detail_df = filtered_df[filtered_df["Priority"] == clicked_priority]
+
+                display_cols = []
+                for col in [
+                    "Issue key",
+                    "Summary",
+                    "Status",
+                    "Priority",
+                    "Assignee",
+                    "Environment",
+                    "Created",
+                    "Updated",
+                ]:
+                    if col in pri_detail_df.columns:
+                        display_cols.append(col)
+
+                if display_cols:
+                    st.dataframe(
+                        pri_detail_df[display_cols].sort_values(
+                            by="Status" if "Status" in display_cols else display_cols[0]
+                        ),
+                        use_container_width=True,
+                    )
+                else:
+                    st.write("No standard columns found for drilldown display.")
+
+    # 🔹 Bugs by Status with drilldown
+    with chart_col2:
+        if "Status" in filtered_df.columns:
+            st.markdown("#### Bugs by Status (click a bar for details)")
             status_counts = filtered_df["Status"].value_counts().reset_index()
             status_counts.columns = ["Status", "Count"]
-            st.bar_chart(status_counts.set_index("Status"))
+
+            fig_status = px.bar(
+                status_counts,
+                x="Status",
+                y="Count",
+            )
+
+            selected_status_points = plotly_events(
+                fig_status,
+                click_event=True,
+                hover_event=False,
+                select_event=False,
+                key="status_bar",
+            )
+
+            # If a bar is clicked, show detail table
+            if selected_status_points:
+                clicked_status = selected_status_points[0]["x"]
+                st.markdown(f"**🔍 Drilldown – Bugs with Status: `{clicked_status}`**")
+                status_detail_df = filtered_df[filtered_df["Status"] == clicked_status]
+
+                display_cols = []
+                for col in [
+                    "Issue key",
+                    "Summary",
+                    "Status",
+                    "Priority",
+                    "Assignee",
+                    "Environment",
+                    "Created",
+                    "Updated",
+                ]:
+                    if col in status_detail_df.columns:
+                        display_cols.append(col)
+
+                if display_cols:
+                    st.dataframe(
+                        status_detail_df[display_cols].sort_values(
+                            by="Priority" if "Priority" in display_cols else display_cols[0]
+                        ),
+                        use_container_width=True,
+                    )
+                else:
+                    st.write("No standard columns found for drilldown display.")
 
     # --- Trend Chart: Bugs Created over Time ---
     if "Created" in filtered_df.columns:
@@ -143,8 +233,8 @@ def main():
 
     st.markdown("---")
 
-    # --- Detailed Table ---
-    st.subheader("📋 Bug Details")
+    # --- Detailed Table (full filtered view) ---
+    st.subheader("📋 Bug Details – All (after filters)")
 
     display_cols = []
     for col in ["Issue key", "Summary", "Status", "Priority", "Assignee", "Environment", "Created", "Updated"]:
